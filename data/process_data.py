@@ -135,6 +135,14 @@ def compute_split_counts(n: int) -> tuple[int, int, int]:
 # Main processing
 # ---------------------------------------------------------------------------
 
+def already_processed(name: str, out_dir: Path, split_labels: list[str]) -> bool:
+    """Return True if every expected output file for this sprite already exists."""
+    return all(
+        (out_dir / split / f"{name}_{i:03d}.png").exists()
+        for i, split in enumerate(split_labels)
+    )
+
+
 def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> None:
     sprite_paths = sorted(Path(base_dir).glob("*.png"))
     if not sprite_paths:
@@ -153,8 +161,14 @@ def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> No
     print(f"Processing {len(sprite_paths)} sprites → "
           f"{n_train} train / {n_val} val / {n_test} test copies each")
 
+    skipped = 0
     for sprite_path in sprite_paths:
         name = sprite_path.stem   # e.g. "train_abomasnow"
+
+        if already_processed(name, out_dir_path, split_labels):
+            skipped += 1
+            continue
+
         img = Image.open(sprite_path).convert("RGBA")
         img = img.resize((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
 
@@ -166,8 +180,8 @@ def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> No
 
         print(f"  Saved {NUM_COPIES_PER_IMAGE} copies for {name}")
 
-    total = len(sprite_paths) * NUM_COPIES_PER_IMAGE
-    print(f"\nDone. {total} images written to {out_dir}")
+    processed_count = len(sprite_paths) - skipped
+    print(f"\nDone. {processed_count} sprites processed, {skipped} skipped (already existed).")
 
 
 # ---------------------------------------------------------------------------
