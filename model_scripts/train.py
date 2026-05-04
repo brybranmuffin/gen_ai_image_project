@@ -130,6 +130,7 @@ def main() -> None:
     with open(log_path, "w") as f:
         f.write("epoch,train_loss,val_loss\n")
 
+    val_loss = float("inf")
     for epoch in range(start_epoch + 1, cfg.epochs + 1):
         train_loss = train_epoch(model, train_loader, optimizer, device, cfg, epoch)
         val_loss = eval_epoch(model, val_loader, device, cfg)

@@ -20,6 +20,8 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$PROJECT_DIR/logs"
 mkdir -p "$PROJECT_DIR/checkpoints"
 
+cd "$PROJECT_DIR/model_scripts"
+
 python train.py \
     --data_dir         "$PROJECT_DIR/data" \
     --checkpoint_dir   "$PROJECT_DIR/checkpoints" \
