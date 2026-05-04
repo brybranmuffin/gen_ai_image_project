@@ -13,7 +13,7 @@
 
 module purge
 module load python/anaconda3
-source activate <YOUR_CONDA_ENV>          # replace with your conda env name
+source activate scpmnet
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
