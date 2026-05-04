@@ -162,6 +162,7 @@ def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> No
           f"{n_train} train / {n_val} val / {n_test} test copies each")
 
     skipped = 0
+    corrupted = []
     for sprite_path in sprite_paths:
         name = sprite_path.stem   # e.g. "train_abomasnow"
 
@@ -169,8 +170,15 @@ def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> No
             skipped += 1
             continue
 
-        img = Image.open(sprite_path).convert("RGBA")
-        img = img.resize((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
+        try:
+            img = Image.open(sprite_path).convert("RGBA")
+            img.verify()                # catches truncated / corrupted data
+            img = Image.open(sprite_path).convert("RGBA")  # reopen after verify
+            img = img.resize((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
+        except Exception as e:
+            print(f"  WARNING: skipping {sprite_path.name} — {e}")
+            corrupted.append(sprite_path.name)
+            continue
 
         for i, split in enumerate(split_labels):
             # Test copies stay clean; train/val copies are augmented
@@ -180,8 +188,10 @@ def process_sprites(base_dir: str, out_dir: str, limit: int | None = None) -> No
 
         print(f"  Saved {NUM_COPIES_PER_IMAGE} copies for {name}")
 
-    processed_count = len(sprite_paths) - skipped
+    processed_count = len(sprite_paths) - skipped - len(corrupted)
     print(f"\nDone. {processed_count} sprites processed, {skipped} skipped (already existed).")
+    if corrupted:
+        print(f"Corrupted/unreadable files skipped ({len(corrupted)}): {', '.join(corrupted)}")
 
 
 # ---------------------------------------------------------------------------
