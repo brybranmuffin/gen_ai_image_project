@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --account=e32706       # replace with your Quest allocation ID
 #SBATCH --partition=gengpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
