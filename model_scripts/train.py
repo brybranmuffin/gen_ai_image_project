@@ -27,6 +27,10 @@ def parse_args() -> VAEConfig:
     p.add_argument("--save_every", type=int, default=cfg.save_every)
     p.add_argument("--resume_from", default=cfg.resume_from)
     p.add_argument("--log_interval", type=int, default=cfg.log_interval)
+    p.add_argument("--encoder_dropout", type=float, default=cfg.encoder_dropout)
+    p.add_argument("--lr_patience", type=int, default=cfg.lr_patience)
+    p.add_argument("--lr_factor", type=float, default=cfg.lr_factor)
+    p.add_argument("--lr_min", type=float, default=cfg.lr_min)
     args = p.parse_args()
     for k, v in vars(args).items():
         setattr(cfg, k, v)
@@ -47,20 +51,25 @@ def build_loader(data_dir: str, split: str, cfg: VAEConfig, augment: bool) -> Da
 
 
 def save_checkpoint(model: VAE, optimizer: torch.optim.Optimizer,
+                    scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
                     epoch: int, loss: float, path: str) -> None:
     torch.save({
         "epoch": epoch,
         "model_state": model.state_dict(),
         "optimizer_state": optimizer.state_dict(),
+        "scheduler_state": scheduler.state_dict(),
         "loss": loss,
     }, path)
 
 
 def load_checkpoint(path: str, model: VAE, optimizer: torch.optim.Optimizer,
+                    scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
                     device: torch.device) -> int:
     ckpt = torch.load(path, map_location=device)
     model.load_state_dict(ckpt["model_state"])
     optimizer.load_state_dict(ckpt["optimizer_state"])
+    if "scheduler_state" in ckpt:
+        scheduler.load_state_dict(ckpt["scheduler_state"])
     print(f"Resumed from epoch {ckpt['epoch']} (loss={ckpt['loss']:.4f})")
     return ckpt["epoch"]
 
@@ -112,15 +121,21 @@ def main() -> None:
         channels=cfg.channels,
         hidden_dim=cfg.hidden_dim,
         latent_dim=cfg.latent_dim,
+        dropout=cfg.encoder_dropout,
     ).to(device)
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay
     )
 
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", factor=cfg.lr_factor,
+        patience=cfg.lr_patience, min_lr=cfg.lr_min,
+    )
+
     start_epoch = 0
     if cfg.resume_from:
-        start_epoch = load_checkpoint(cfg.resume_from, model, optimizer, device)
+        start_epoch = load_checkpoint(cfg.resume_from, model, optimizer, scheduler, device)
 
     print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
     print(f"Training samples: {len(train_loader.dataset)}, "
@@ -128,25 +143,27 @@ def main() -> None:
 
     log_path = os.path.join(cfg.log_dir, "train_log.csv")
     with open(log_path, "w") as f:
-        f.write("epoch,train_loss,val_loss\n")
+        f.write("epoch,train_loss,val_loss,lr\n")
 
     val_loss = float("inf")
     for epoch in range(start_epoch + 1, cfg.epochs + 1):
         train_loss = train_epoch(model, train_loader, optimizer, device, cfg, epoch)
         val_loss = eval_epoch(model, val_loader, device, cfg)
+        scheduler.step(val_loss)
 
-        print(f"Epoch {epoch}/{cfg.epochs}  train={train_loss:.4f}  val={val_loss:.4f}")
+        current_lr = optimizer.param_groups[0]["lr"]
+        print(f"Epoch {epoch}/{cfg.epochs}  train={train_loss:.4f}  val={val_loss:.4f}  lr={current_lr:.2e}")
 
         with open(log_path, "a") as f:
-            f.write(f"{epoch},{train_loss:.6f},{val_loss:.6f}\n")
+            f.write(f"{epoch},{train_loss:.6f},{val_loss:.6f},{current_lr:.2e}\n")
 
         if epoch % cfg.save_every == 0:
             ckpt_path = os.path.join(cfg.checkpoint_dir, f"vae_epoch_{epoch:04d}.pt")
-            save_checkpoint(model, optimizer, epoch, val_loss, ckpt_path)
+            save_checkpoint(model, optimizer, scheduler, epoch, val_loss, ckpt_path)
             print(f"  Saved checkpoint: {ckpt_path}")
 
     final_path = os.path.join(cfg.checkpoint_dir, "vae_final.pt")
-    save_checkpoint(model, optimizer, cfg.epochs, val_loss, final_path)
+    save_checkpoint(model, optimizer, scheduler, cfg.epochs, val_loss, final_path)
     print(f"Training complete. Final model saved to {final_path}")
 
 

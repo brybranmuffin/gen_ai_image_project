@@ -33,4 +33,8 @@ python train.py \
     --epochs           100 \
     --learning_rate    1e-3 \
     --num_workers      4 \
-    --save_every       10
+    --save_every       10 \
+    --encoder_dropout  0.3 \
+    --lr_patience      15 \
+    --lr_factor        0.5 \
+    --lr_min           1e-6

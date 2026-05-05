@@ -16,6 +16,12 @@ class VAEConfig:
     latent_dim: int = 128
     hidden_dim: int = 512
     beta: float = 1.0           # KL weight (beta-VAE; 1.0 = standard VAE)
+    encoder_dropout: float = 0.3
+
+    # LR scheduler (ReduceLROnPlateau)
+    lr_patience: int = 15
+    lr_factor: float = 0.5
+    lr_min: float = 1e-6
 
     # Training
     batch_size: int = 64

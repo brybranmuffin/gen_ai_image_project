@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class Encoder(nn.Module):
-    def __init__(self, channels: int, hidden_dim: int, latent_dim: int):
+    def __init__(self, channels: int, hidden_dim: int, latent_dim: int, dropout: float = 0.3):
         super().__init__()
         # 96 -> 48 -> 24 -> 12 -> 6
         self.conv = nn.Sequential(
@@ -21,12 +21,13 @@ class Encoder(nn.Module):
         )
         self.flat_dim = 256 * 6 * 6
         self.fc = nn.Linear(self.flat_dim, hidden_dim)
+        self.dropout = nn.Dropout(dropout)
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
         self.fc_log_var = nn.Linear(hidden_dim, latent_dim)
 
     def forward(self, x):
         x = self.conv(x).flatten(1)
-        x = torch.relu(self.fc(x))
+        x = self.dropout(torch.relu(self.fc(x)))
         return self.fc_mu(x), self.fc_log_var(x)
 
 
@@ -61,9 +62,10 @@ class Decoder(nn.Module):
 
 
 class VAE(nn.Module):
-    def __init__(self, channels: int = 4, hidden_dim: int = 512, latent_dim: int = 128):
+    def __init__(self, channels: int = 4, hidden_dim: int = 512, latent_dim: int = 128,
+                 dropout: float = 0.3):
         super().__init__()
-        self.encoder = Encoder(channels, hidden_dim, latent_dim)
+        self.encoder = Encoder(channels, hidden_dim, latent_dim, dropout)
         self.decoder = Decoder(channels, hidden_dim, latent_dim)
 
     def reparameterize(self, mu: torch.Tensor, log_var: torch.Tensor) -> torch.Tensor:
