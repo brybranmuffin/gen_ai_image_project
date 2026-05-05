@@ -49,5 +49,5 @@ def download_pokemon_sprite(pokemon_name_or_id, output_dir="."):
 if __name__ == "__main__":
     # Example usage downloading Ditto (ID 132) and Pikachu
 
-    download_pokemon_sprite(1025, output_dir="./")
+    download_pokemon_sprite('meowstic-female', output_dir="./")
     # download_pokemon_sprite("pikachu", output_dir="pokemon_sprites")
