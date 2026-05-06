@@ -4,7 +4,8 @@ import math
 
 import numpy as np
 import torch
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Header
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from PIL import Image
 
@@ -69,12 +70,20 @@ def tensor_to_png_bytes(tensor: torch.Tensor) -> bytes:
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/interpolate")
 async def interpolate(
     pokedex_id_1: int = Query(...),
     pokedex_id_2: int = Query(...),
     alpha: float = Query(..., ge=0.0, le=1.0),
+    x_api_key: str = Header(...)
 ):
     z = interpolate_latent(pokedex_id_1, pokedex_id_2, alpha)
     tensor = decode_latent(z)
