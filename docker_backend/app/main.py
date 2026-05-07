@@ -54,12 +54,11 @@ def interpolate_latent(id1: int, id2: int, alpha: float) -> torch.Tensor:
 
 def decode_latent(z: torch.Tensor) -> torch.Tensor:
     with torch.no_grad():
-        return model.decoder(z.unsqueeze(0))  # [1, 4, 96, 96]
+        return model.decoder(z.unsqueeze(0))
 
 
 def tensor_to_png_bytes(tensor: torch.Tensor) -> bytes:
-    # tensor: [1, 4, 96, 96], values in [0, 1] from Sigmoid
-    arr = tensor.squeeze(0).permute(1, 2, 0).cpu().numpy()  # [96, 96, 4]
+    arr = tensor.squeeze(0).permute(1, 2, 0).cpu().numpy()
     arr = (arr * 255).clip(0, 255).astype(np.uint8)
     image = Image.fromarray(arr, mode="RGBA")
     buf = io.BytesIO()
