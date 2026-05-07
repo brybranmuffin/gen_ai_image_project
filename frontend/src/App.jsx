@@ -7,8 +7,8 @@ const APIM_URL = 'https://pokae-api.azure-api.net/interpolate';
 const APIM_KEY = import.meta.env.VITE_APIM_KEY ?? '';
 
 export default function App() {
-  const [leftPokemon, setLeftPokemon] = useState(null);
-  const [rightPokemon, setRightPokemon] = useState(null);
+  const [leftPokemon, setLeftPokemon] = useState({ id: 25, name: "pikachu" });
+  const [rightPokemon, setRightPokemon] = useState({ id: 133, name: "eevee" });
   const [sliderValue, setSliderValue] = useState(50);
   const [resultUrl, setResultUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
