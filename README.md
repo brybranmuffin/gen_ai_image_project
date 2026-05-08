@@ -18,8 +18,11 @@ PokAE Interpolator is an application that allows users to explore what it would 
 
 ### Image Data Issues
 
-- The current application was trained on all Pokémon except **#698 — Tyrunt**. The source image was corrupted and could not be recovered, so Tyrunt was excluded from the dataset.
-- Training loss plateaued around epoch 300 and showed no meaningful improvement through at least epoch 500. On re-examining the training pipeline, it became clear that augmenting images offline (pre-generating copies before training) rather than sampling augmentations dynamically at training time was likely a contributing factor. The pipeline was updated to sample augmented views from raw sprites at training time, but the loss did not improve further, suggesting the model had reached its capacity ceiling for this dataset size.
+The current application was trained on all Pokémon except **#698 - Tyrunt**. The source image was corrupted and could not be recovered, so Tyrunt was excluded from the dataset.
+
+### Loss Plateau
+
+Training loss plateaued around epoch 300 and showed no meaningful improvement through at least epoch 500. On re-examining the training pipeline, it became clear that augmenting images offline (pre-generating copies before training) rather than sampling augmentations dynamically at training time was likely a contributing factor. The pipeline was updated to sample augmented views from raw sprites at training time, but the loss did not improve further, suggesting the model had reached its capacity ceiling for this dataset size.
 
 ### Interpolated Image Quality
 
