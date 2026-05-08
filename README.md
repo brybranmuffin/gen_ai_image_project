@@ -22,3 +22,11 @@ docker build -t pokae_backend .
 cd ../frontend
 npm run start
 ```
+
+## VAE Development
+
+### Data Sources
+### Model Architecture
+### Training Results
+
+## Application Architecture
