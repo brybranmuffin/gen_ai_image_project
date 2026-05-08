@@ -16,7 +16,9 @@ export default function SliderPanel({
       flexDirection: 'column',
       alignItems: 'center',
       gap: '12px',
-      padding: '0 24px',
+      width: '100%',
+      padding: '16px',
+      boxSizing: 'border-box',
     }}>
       <div style={{ textAlign: 'center', lineHeight: '1.6', fontSize: '15px' }}>
         <div>{sliderValue}% {displayName(leftPokemon)}</div>
@@ -30,14 +32,15 @@ export default function SliderPanel({
         step="1"
         value={sliderValue}
         onChange={e => setSliderValue(Number(e.target.value))}
-        style={{ width: '180px', cursor: 'pointer' }}
+        style={{ width: '80%', cursor: 'pointer' }}
       />
 
       <button
         onClick={onGenerate}
         disabled={!canGenerate}
         style={{
-          padding: '8px 24px',
+          width: '60%',
+          padding: '8px 0',
           fontSize: '14px',
           cursor: canGenerate ? 'pointer' : 'not-allowed',
           opacity: canGenerate ? 1 : 0.4,
@@ -51,13 +54,14 @@ export default function SliderPanel({
       </button>
 
       <div style={{
-        width: 180,
-        height: 180,
+        width: '100%',
+        aspectRatio: '1',
         border: '1px solid #ccc',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        boxSizing: 'border-box',
       }}>
         {isLoading ? (
           <div className="spinner" />
@@ -65,9 +69,7 @@ export default function SliderPanel({
           <img
             src={resultUrl}
             alt="Generated Pokémon"
-            width={180}
-            height={180}
-            style={{ imageRendering: 'pixelated' }}
+            style={{ width: '100%', height: '100%', imageRendering: 'pixelated', objectFit: 'contain' }}
           />
         ) : (
           <span style={{ color: '#999', fontSize: '13px', textAlign: 'center', padding: '8px' }}>
@@ -77,7 +79,7 @@ export default function SliderPanel({
       </div>
 
       {resultUrl && !isLoading && (
-        <div style={{ fontSize: '13px', textAlign: 'center', color: '#444', maxWidth: '180px' }}>
+        <div style={{ fontSize: '13px', textAlign: 'center', color: '#444' }}>
           Congratulations, you have discovered a new Pokémon!
         </div>
       )}

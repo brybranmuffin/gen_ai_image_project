@@ -5,6 +5,7 @@
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
+  font-size: 18px;
 }
 
 .spinner {

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { usePokemonList } from './usePokemonList';
 import PokemonPanel from './PokemonPanel';
 import SliderPanel from './SliderPanel';
+import ExamplesSection from './ExamplesSection';
 
 const APIM_URL = 'https://pokae-api.azure-api.net/interpolate';
 const APIM_KEY = import.meta.env.VITE_APIM_KEY ?? '';
@@ -39,13 +40,18 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: '24px 32px' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '32px' }}>PokAE Machine</h1>
+    <div style={{ width: '100%' }}>
 
+      {/* Title — 50% wide, centered */}
+      <div style={{ width: '50%', margin: '0 auto', textAlign: 'center', padding: '32px 0 24px' }}>
+        <h1 style={{ margin: 0 }}>PokAE Machine</h1>
+      </div>
+
+      {/* Three equal columns, full width */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        gap: '16px',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        width: '100%',
         alignItems: 'start',
       }}>
         <PokemonPanel
@@ -53,7 +59,6 @@ export default function App() {
           onSelect={setLeftPokemon}
           pokemonList={pokemonList}
         />
-
         <SliderPanel
           sliderValue={sliderValue}
           setSliderValue={setSliderValue}
@@ -63,7 +68,6 @@ export default function App() {
           isLoading={isLoading}
           resultUrl={resultUrl}
         />
-
         <PokemonPanel
           pokemon={rightPokemon}
           onSelect={setRightPokemon}
@@ -71,7 +75,12 @@ export default function App() {
         />
       </div>
 
-      <footer style={{ marginTop: '48px', textAlign: 'center', fontSize: '13px', color: '#999' }}>
+      {/* Gallery — 50% wide, centered */}
+      <div style={{ width: '50%', margin: '0 auto' }}>
+        <ExamplesSection />
+      </div>
+
+      <footer style={{ marginTop: '48px', textAlign: 'center', fontSize: '13px', color: '#999', paddingBottom: '32px' }}>
         Pokémon data and sprites provided by{' '}
         <a href="https://pokeapi.co" target="_blank" rel="noreferrer" style={{ color: '#999' }}>
           PokéAPI

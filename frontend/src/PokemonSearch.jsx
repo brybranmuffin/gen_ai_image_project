@@ -52,7 +52,7 @@ export default function PokemonSearch({ pokemonList, selected, onSelect }) {
         onChange={handleChange}
         onFocus={handleFocus}
         placeholder="Search Pokémon…"
-        style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: '14px' }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', fontSize: '1rem' }}
       />
       {isOpen && filtered.length > 0 && (
         <ul style={{
@@ -73,7 +73,7 @@ export default function PokemonSearch({ pokemonList, selected, onSelect }) {
             <li
               key={p.id}
               onMouseDown={() => handleSelect(p)}
-              style={{ padding: '5px 8px', cursor: 'pointer', fontSize: '14px' }}
+              style={{ padding: '7px 10px', cursor: 'pointer', fontSize: '1rem' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
               onMouseLeave={e => e.currentTarget.style.background = ''}
             >
