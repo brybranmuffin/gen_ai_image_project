@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class VAEConfig:
     # Paths (relative to project root; override on cluster with absolute paths)
     data_dir: str = "../data"
+    sprites_dir: str = "../pokemon_sprites"
     checkpoint_dir: str = "../checkpoints"
     log_dir: str = "../logs"
 
@@ -22,6 +23,10 @@ class VAEConfig:
     lr_patience: int = 15
     lr_factor: float = 0.5
     lr_min: float = 1e-6
+
+    # Dataset sampling
+    samples_per_pokemon: int = 10                          # augmented samples drawn per sprite per epoch
+    exclude_sprites: list = field(default_factory=lambda: ["tyrunt"])  # sprite stems to skip
 
     # Training
     batch_size: int = 64

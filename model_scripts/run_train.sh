@@ -23,18 +23,21 @@ mkdir -p "$PROJECT_DIR/checkpoints"
 cd "$PROJECT_DIR/model_scripts"
 
 python train.py \
-    --data_dir         "$PROJECT_DIR/data" \
-    --checkpoint_dir   "$PROJECT_DIR/checkpoints" \
-    --log_dir          "$PROJECT_DIR/logs" \
-    --latent_dim       128 \
-    --hidden_dim       512 \
-    --beta             1.0 \
-    --batch_size       64 \
-    --epochs           100 \
-    --learning_rate    1e-3 \
-    --num_workers      4 \
-    --save_every       10 \
-    --encoder_dropout  0.3 \
-    --lr_patience      15 \
-    --lr_factor        0.5 \
-    --lr_min           1e-6
+    --data_dir              "$PROJECT_DIR/data" \
+    --sprites_dir           "$PROJECT_DIR/pokemon_sprites" \
+    --checkpoint_dir        "$PROJECT_DIR/checkpoints" \
+    --log_dir               "$PROJECT_DIR/logs" \
+    --latent_dim            128 \
+    --hidden_dim            512 \
+    --beta                  1.0 \
+    --batch_size            64 \
+    --epochs                100 \
+    --learning_rate         1e-3 \
+    --num_workers           4 \
+    --save_every            10 \
+    --encoder_dropout       0.3 \
+    --lr_patience           15 \
+    --lr_factor             0.5 \
+    --lr_min                1e-6 \
+    --samples_per_pokemon   10 \
+    --exclude_sprites       tyrunt

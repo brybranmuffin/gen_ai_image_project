@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from config import VAEConfig, get_config
-from dataset import PokemonDataset
+from dataset import PokemonDataset, SampledPokemonDataset
 from vae import VAE, vae_loss
 
 
@@ -31,22 +31,37 @@ def parse_args() -> VAEConfig:
     p.add_argument("--lr_patience", type=int, default=cfg.lr_patience)
     p.add_argument("--lr_factor", type=float, default=cfg.lr_factor)
     p.add_argument("--lr_min", type=float, default=cfg.lr_min)
+    p.add_argument("--sprites_dir", default=cfg.sprites_dir)
+    p.add_argument("--samples_per_pokemon", type=int, default=cfg.samples_per_pokemon)
+    p.add_argument("--exclude_sprites", nargs="*", default=cfg.exclude_sprites)
     args = p.parse_args()
     for k, v in vars(args).items():
         setattr(cfg, k, v)
     return cfg
 
 
-def build_loader(data_dir: str, split: str, cfg: VAEConfig, augment: bool) -> DataLoader:
-    path = os.path.join(data_dir, split)
-    dataset = PokemonDataset(path, image_size=cfg.image_size, augment=augment)
+def build_train_loader(cfg: VAEConfig) -> DataLoader:
+    dataset = SampledPokemonDataset(cfg.sprites_dir, cfg.image_size, cfg.samples_per_pokemon,
+                                    exclude=cfg.exclude_sprites)
     return DataLoader(
         dataset,
         batch_size=cfg.batch_size,
-        shuffle=(split == "training"),
+        shuffle=True,
         num_workers=cfg.num_workers,
         pin_memory=cfg.pin_memory,
-        drop_last=(split == "training"),
+        drop_last=True,
+    )
+
+
+def build_val_loader(cfg: VAEConfig) -> DataLoader:
+    path = os.path.join(cfg.data_dir, "validation")
+    dataset = PokemonDataset(path, image_size=cfg.image_size)
+    return DataLoader(
+        dataset,
+        batch_size=cfg.batch_size,
+        shuffle=False,
+        num_workers=cfg.num_workers,
+        pin_memory=cfg.pin_memory,
     )
 
 
@@ -114,8 +129,8 @@ def main() -> None:
     Path(cfg.checkpoint_dir).mkdir(parents=True, exist_ok=True)
     Path(cfg.log_dir).mkdir(parents=True, exist_ok=True)
 
-    train_loader = build_loader(cfg.data_dir, "training", cfg, augment=True)
-    val_loader = build_loader(cfg.data_dir, "validation", cfg, augment=False)
+    train_loader = build_train_loader(cfg)
+    val_loader = build_val_loader(cfg)
 
     model = VAE(
         channels=cfg.channels,
