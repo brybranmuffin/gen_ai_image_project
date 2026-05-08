@@ -1,14 +1,11 @@
 import requests
 import os
 
-def download_pokemon_sprite(pokemon_name_or_id, output_dir=".", prefix=""):
-    """
-    Downloads the front_default sprite for a given pokemon using the PokeAPI.
+"""
+Downloads the front_default sprite for a given pokemon using the PokeAPI.
+"""
+def download_pokemon_sprite(pokemon_name_or_id: int | str, output_dir: str = ".", prefix: str = "") -> None:
     
-    Args:
-        pokemon_name_or_id (str/int): The name or ID of the pokemon (e.g., 'ditto' or 132).
-        output_dir (str): Directory to save the image. Defaults to current directory.
-    """
     # 1. Fetch pokemon data from the API
     api_url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name_or_id}"
     print(f"Fetching API data for '{pokemon_name_or_id}' from {api_url}...")
@@ -48,7 +45,10 @@ def download_pokemon_sprite(pokemon_name_or_id, output_dir=".", prefix=""):
 
 if __name__ == "__main__":
     # Example usage downloading Ditto (ID 132) and Pikachu
-    download_pokemon_sprite('meowstic-female', output_dir="./")
+    download_pokemon_sprite('meowstic-female', output_dir="./", prefix="677")
     # download_pokemon_sprite("pikachu", output_dir="pokemon_sprites")
     for i in range(1, 1026):
+        #skipping meowstic-male, same issue as tyrunt, but another version is available
+        if i == 677:
+            continue
         download_pokemon_sprite(i, output_dir="./", prefix=str(i))

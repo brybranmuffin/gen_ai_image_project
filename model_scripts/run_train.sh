@@ -15,7 +15,7 @@ module purge
 module load python/anaconda3
 source activate scpmnet
 
-PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_DIR="/scratch/rsr7518/gen_ai_image_project"
 
 mkdir -p "$PROJECT_DIR/logs"
 mkdir -p "$PROJECT_DIR/checkpoints"

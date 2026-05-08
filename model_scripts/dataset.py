@@ -8,7 +8,9 @@ from torchvision import transforms
 
 from process_data_utils import augment_image
 
-
+"""
+Training data transforms
+"""
 def get_train_transforms(image_size: int) -> transforms.Compose:
     return transforms.Compose([
         transforms.Lambda(augment_image),
@@ -17,6 +19,9 @@ def get_train_transforms(image_size: int) -> transforms.Compose:
     ])
 
 
+"""
+Evaluation data transforms
+"""
 def get_eval_transforms(image_size: int) -> transforms.Compose:
     return transforms.Compose([
         transforms.Resize((image_size, image_size)),
@@ -24,6 +29,9 @@ def get_eval_transforms(image_size: int) -> transforms.Compose:
     ])
 
 
+"""
+Splits the sprites into training and validation sets
+"""
 def split_sprites(
     sprites_dir: str,
     val_split: float,
@@ -40,9 +48,11 @@ def split_sprites(
     n_val = max(1, round(len(shuffled) * val_split))
     return shuffled[n_val:], shuffled[:n_val]   # train, val
 
+"""
+Draws samples_per_pokemon augmented views of each sprite per epoch.
+"""
 
 class SampledPokemonDataset(Dataset):
-    """Draws samples_per_pokemon augmented views of each sprite per epoch."""
 
     def __init__(self, paths: list, image_size: int, samples_per_pokemon: int):
         if not paths:
@@ -58,9 +68,10 @@ class SampledPokemonDataset(Dataset):
         img = Image.open(self.paths[idx % len(self.paths)]).convert("RGBA")
         return self.transform(img)
 
-
+"""
+Loads raw sprites without augmentation (used for validation/test).
+"""
 class PokemonDataset(Dataset):
-    """Loads raw sprites without augmentation (used for validation/test)."""
 
     def __init__(self, paths: list, image_size: int = 96):
         if not paths:

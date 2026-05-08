@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 
 
+"""
+Encoder class
+"""
 class Encoder(nn.Module):
     def __init__(self, channels: int, hidden_dim: int, latent_dim: int, dropout: float = 0.3):
         super().__init__()
@@ -31,6 +34,9 @@ class Encoder(nn.Module):
         return self.fc_mu(x), self.fc_log_var(x)
 
 
+"""
+Decoder class
+"""
 class Decoder(nn.Module):
     def __init__(self, channels: int, hidden_dim: int, latent_dim: int):
         super().__init__()
@@ -61,6 +67,9 @@ class Decoder(nn.Module):
         return self.deconv(x)
 
 
+"""
+VAE class
+"""
 class VAE(nn.Module):
     def __init__(self, channels: int = 4, hidden_dim: int = 512, latent_dim: int = 128,
                  dropout: float = 0.3):
@@ -68,6 +77,9 @@ class VAE(nn.Module):
         self.encoder = Encoder(channels, hidden_dim, latent_dim, dropout)
         self.decoder = Decoder(channels, hidden_dim, latent_dim)
 
+    """
+    Reparameterization trick
+    """
     def reparameterize(self, mu: torch.Tensor, log_var: torch.Tensor) -> torch.Tensor:
         std = torch.exp(0.5 * log_var)
         eps = torch.randn_like(std)
@@ -84,6 +96,9 @@ class VAE(nn.Module):
         return self.decoder(z)
 
 
+"""
+VAE loss function. Calculates reconstruction loss and KL divergence
+"""
 def vae_loss(recon: torch.Tensor, target: torch.Tensor,
              mu: torch.Tensor, log_var: torch.Tensor,
              beta: float = 1.0) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

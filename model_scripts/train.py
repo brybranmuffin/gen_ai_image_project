@@ -9,7 +9,9 @@ from config import VAEConfig, get_config
 from dataset import PokemonDataset, SampledPokemonDataset, split_sprites
 from vae import VAE, vae_loss
 
-
+"""
+Updates config dataclass if there are things that the user overrided in the command line
+"""
 def parse_args() -> VAEConfig:
     cfg = get_config()
     p = argparse.ArgumentParser()
@@ -23,6 +25,9 @@ def parse_args() -> VAEConfig:
     return cfg
 
 
+"""
+Builds train and validation data loaders
+"""
 def build_loaders(cfg: VAEConfig) -> tuple[DataLoader, DataLoader]:
     train_paths, val_paths = split_sprites(
         cfg.sprites_dir, cfg.val_split, cfg.split_seed, cfg.exclude_sprites
@@ -40,6 +45,9 @@ def build_loaders(cfg: VAEConfig) -> tuple[DataLoader, DataLoader]:
     return train_loader, val_loader
 
 
+"""
+Saves a checkpoint of the model
+"""
 def save_checkpoint(model: VAE, optimizer: torch.optim.Optimizer,
                     scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
                     epoch: int, loss: float, path: str) -> None:
@@ -52,6 +60,9 @@ def save_checkpoint(model: VAE, optimizer: torch.optim.Optimizer,
     }, path)
 
 
+"""
+Loads a checkpoint of the model
+"""
 def load_checkpoint(path: str, model: VAE, optimizer: torch.optim.Optimizer,
                     scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
                     device: torch.device) -> int:
@@ -64,6 +75,9 @@ def load_checkpoint(path: str, model: VAE, optimizer: torch.optim.Optimizer,
     return ckpt["epoch"]
 
 
+"""
+Trains the model for one epoch
+"""
 def train_epoch(model: VAE, loader: DataLoader, optimizer: torch.optim.Optimizer,
                 device: torch.device, cfg: VAEConfig, epoch: int) -> float:
     model.train()
@@ -82,6 +96,9 @@ def train_epoch(model: VAE, loader: DataLoader, optimizer: torch.optim.Optimizer
     return total_loss / len(loader)
 
 
+"""
+Evaluates the model for one epoch
+"""
 @torch.no_grad()
 def eval_epoch(model: VAE, loader: DataLoader,
                device: torch.device, cfg: VAEConfig) -> float:
