@@ -29,6 +29,8 @@ Linear interpolation was the initial approach for combining latent vectors, but 
 
 Several issues came up when learning to deploy the Docker image to Azure and connecting Azure Container Apps to API Management. All in all, not a difficult project for this level of application.
 
+![PokAE Interpolator API diagram](API_diagram.drawio.png)
+
 ## How to run
 
 The live app is hosted on Azure. You can find it here: https://brave-water-0f1e3a510.7.azurestaticapps.net/
@@ -41,7 +43,6 @@ The frontend is configured to call the hosted Azure API, so there is no way to r
 
 ```bash
 cd pokemon_sprites
-pip install -r requirements.txt
 python download_pokemon_sprites.py
 ```
 
@@ -50,17 +51,7 @@ python download_pokemon_sprites.py
 ```bash
 cd model_scripts
 pip install -r requirements.txt
-python train.py
-```
-
-All hyperparameters are set in `model_scripts/config.py`. The only CLI flags accepted by `train.py` are path overrides:
-
-```bash
-python train.py \
-  --sprites_dir    ../pokemon_sprites \
-  --checkpoint_dir ../checkpoints \
-  --log_dir        ../logs \
-  --resume_from    ../checkpoints/vae_epoch_0010.pt  # optional
+python train.py --sprites_dir ../pokemon_sprites --checkpoint_dir ../checkpoints --log_dir ../logs
 ```
 
 ### Building and testing the backend locally
@@ -70,14 +61,10 @@ Make sure Docker Desktop is running before proceeding.
 1. Build the image
 
 ```bash
-cd docker_backend
+cd ./docker_backend
 docker build -t pokae_backend .
 ```
 
-> **Apple Silicon users:** Azure runs on AMD64. If you plan to push this image to Azure, build with the platform flag:
-> ```bash
-> docker build --platform linux/amd64 -t pokae_backend .
-> ```
 
 2. Start the container
 
@@ -92,26 +79,20 @@ The API will be available at `http://localhost:8000`. The interactive docs are a
 ```bash
 curl -s -X POST \
   "http://localhost:8000/interpolate?pokedex_id_1=25&pokedex_id_2=133&alpha=0.5" \
-  -H "x-api-key: test" \
   --output fusion.png
 ```
 
 This blends Pikachu (25) and Eevee (133) at equal weight and writes the result to `fusion.png`. Swap the Pokédex IDs and `alpha` value (0.0–1.0) to generate other fusions.
 
-4. Stop the container
 
-```bash
-docker ps           # find the container ID
-docker stop <id>
-```
 
 ### Running the frontend locally
 
 ```bash
-cd frontend
+cd ./frontend
 npm install
 npm run dev
 ```
 
-> The frontend reads the APIM subscription key from `frontend/.env`. Copy `.env.example` to `.env` and fill in your key if you have one, or point `VITE_API_BASE_URL` at `http://localhost:8000` to use the local backend.
+
 
