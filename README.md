@@ -30,31 +30,88 @@ Linear interpolation was the initial approach for combining latent vectors, but 
 Several issues came up when learning to deploy the Docker image to Azure and connecting Azure Container Apps to API Management. All in all, not a difficult project for this level of application.
 
 ## How to run
-App is hosted on Azure Static Web Apps. Model is hosted on Azure Container Instance. You can find the app here: https://brave-water-0f1e3a510.7.azurestaticapps.net/
 
-### Building Files Locally
-Currently there is no way to run the entire application locally. Front end code is configured to use hosted Azure API for interpolation requests. 
+The live app is hosted on Azure. You can find it here: https://brave-water-0f1e3a510.7.azurestaticapps.net/
 
-1. Building and Testing Backend
+The frontend is configured to call the hosted Azure API, so there is no way to run the full end-to-end application locally without repointing the frontend. However, the backend and frontend can each be run independently.
 
-To run the backend locally we first have to build the docker image and then start the container.
+### Running training locally
+
+1. Download sprites
 
 ```bash
+cd pokemon_sprites
+pip install -r requirements.txt
+python download_pokemon_sprites.py
+```
+
+2. Install dependencies and train
+
+```bash
+cd model_scripts
+pip install -r requirements.txt
+python train.py
+```
+
+All hyperparameters are set in `model_scripts/config.py`. The only CLI flags accepted by `train.py` are path overrides:
+
+```bash
+python train.py \
+  --sprites_dir    ../pokemon_sprites \
+  --checkpoint_dir ../checkpoints \
+  --log_dir        ../logs \
+  --resume_from    ../checkpoints/vae_epoch_0010.pt  # optional
+```
+
+### Building and testing the backend locally
+
+Make sure Docker Desktop is running before proceeding.
+
+1. Build the image
+
+```bash
+cd docker_backend
 docker build -t pokae_backend .
 ```
 
-2. Running Frontend
+> **Apple Silicon users:** Azure runs on AMD64. If you plan to push this image to Azure, build with the platform flag:
+> ```bash
+> docker build --platform linux/amd64 -t pokae_backend .
+> ```
+
+2. Start the container
 
 ```bash
-cd ../frontend
-npm run start
+docker run -p 8000:8000 pokae_backend
 ```
 
-## VAE Development
+The API will be available at `http://localhost:8000`. The interactive docs are at `http://localhost:8000/docs`.
 
-### Data Sources
-### Model Architecture
-### Training Results
+3. Test an interpolation request
 
-## Application Architecture
+```bash
+curl -s -X POST \
+  "http://localhost:8000/interpolate?pokedex_id_1=25&pokedex_id_2=133&alpha=0.5" \
+  -H "x-api-key: test" \
+  --output fusion.png
+```
+
+This blends Pikachu (25) and Eevee (133) at equal weight and writes the result to `fusion.png`. Swap the Pokédex IDs and `alpha` value (0.0–1.0) to generate other fusions.
+
+4. Stop the container
+
+```bash
+docker ps           # find the container ID
+docker stop <id>
+```
+
+### Running the frontend locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+> The frontend reads the APIM subscription key from `frontend/.env`. Copy `.env.example` to `.env` and fill in your key if you have one, or point `VITE_API_BASE_URL` at `http://localhost:8000` to use the local backend.
 

@@ -6,63 +6,38 @@ import torch
 from torch.utils.data import DataLoader
 
 from config import VAEConfig, get_config
-from dataset import PokemonDataset, SampledPokemonDataset
+from dataset import PokemonDataset, SampledPokemonDataset, split_sprites
 from vae import VAE, vae_loss
 
 
 def parse_args() -> VAEConfig:
     cfg = get_config()
     p = argparse.ArgumentParser()
-    p.add_argument("--data_dir", default=cfg.data_dir)
+    p.add_argument("--sprites_dir", default=cfg.sprites_dir)
     p.add_argument("--checkpoint_dir", default=cfg.checkpoint_dir)
     p.add_argument("--log_dir", default=cfg.log_dir)
-    p.add_argument("--latent_dim", type=int, default=cfg.latent_dim)
-    p.add_argument("--hidden_dim", type=int, default=cfg.hidden_dim)
-    p.add_argument("--beta", type=float, default=cfg.beta)
-    p.add_argument("--batch_size", type=int, default=cfg.batch_size)
-    p.add_argument("--epochs", type=int, default=cfg.epochs)
-    p.add_argument("--learning_rate", type=float, default=cfg.learning_rate)
-    p.add_argument("--weight_decay", type=float, default=cfg.weight_decay)
-    p.add_argument("--num_workers", type=int, default=cfg.num_workers)
-    p.add_argument("--save_every", type=int, default=cfg.save_every)
     p.add_argument("--resume_from", default=cfg.resume_from)
-    p.add_argument("--log_interval", type=int, default=cfg.log_interval)
-    p.add_argument("--encoder_dropout", type=float, default=cfg.encoder_dropout)
-    p.add_argument("--lr_patience", type=int, default=cfg.lr_patience)
-    p.add_argument("--lr_factor", type=float, default=cfg.lr_factor)
-    p.add_argument("--lr_min", type=float, default=cfg.lr_min)
-    p.add_argument("--sprites_dir", default=cfg.sprites_dir)
-    p.add_argument("--samples_per_pokemon", type=int, default=cfg.samples_per_pokemon)
-    p.add_argument("--exclude_sprites", nargs="*", default=cfg.exclude_sprites)
     args = p.parse_args()
     for k, v in vars(args).items():
         setattr(cfg, k, v)
     return cfg
 
 
-def build_train_loader(cfg: VAEConfig) -> DataLoader:
-    dataset = SampledPokemonDataset(cfg.sprites_dir, cfg.image_size, cfg.samples_per_pokemon,
-                                    exclude=cfg.exclude_sprites)
-    return DataLoader(
-        dataset,
-        batch_size=cfg.batch_size,
-        shuffle=True,
-        num_workers=cfg.num_workers,
-        pin_memory=cfg.pin_memory,
-        drop_last=True,
+def build_loaders(cfg: VAEConfig) -> tuple[DataLoader, DataLoader]:
+    train_paths, val_paths = split_sprites(
+        cfg.sprites_dir, cfg.val_split, cfg.split_seed, cfg.exclude_sprites
     )
-
-
-def build_val_loader(cfg: VAEConfig) -> DataLoader:
-    path = os.path.join(cfg.data_dir, "validation")
-    dataset = PokemonDataset(path, image_size=cfg.image_size)
-    return DataLoader(
-        dataset,
-        batch_size=cfg.batch_size,
-        shuffle=False,
-        num_workers=cfg.num_workers,
-        pin_memory=cfg.pin_memory,
+    train_ds = SampledPokemonDataset(train_paths, cfg.image_size, cfg.samples_per_pokemon)
+    val_ds = PokemonDataset(val_paths, cfg.image_size)
+    train_loader = DataLoader(
+        train_ds, batch_size=cfg.batch_size, shuffle=True,
+        num_workers=cfg.num_workers, pin_memory=cfg.pin_memory, drop_last=True,
     )
+    val_loader = DataLoader(
+        val_ds, batch_size=cfg.batch_size, shuffle=False,
+        num_workers=cfg.num_workers, pin_memory=cfg.pin_memory,
+    )
+    return train_loader, val_loader
 
 
 def save_checkpoint(model: VAE, optimizer: torch.optim.Optimizer,
@@ -129,8 +104,7 @@ def main() -> None:
     Path(cfg.checkpoint_dir).mkdir(parents=True, exist_ok=True)
     Path(cfg.log_dir).mkdir(parents=True, exist_ok=True)
 
-    train_loader = build_train_loader(cfg)
-    val_loader = build_val_loader(cfg)
+    train_loader, val_loader = build_loaders(cfg)
 
     model = VAE(
         channels=cfg.channels,
@@ -152,9 +126,11 @@ def main() -> None:
     if cfg.resume_from:
         start_epoch = load_checkpoint(cfg.resume_from, model, optimizer, scheduler, device)
 
+    n_train = len(train_loader.dataset)
+    n_val = len(val_loader.dataset)
     print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
-    print(f"Training samples: {len(train_loader.dataset)}, "
-          f"Validation samples: {len(val_loader.dataset)}")
+    print(f"Train sprites: {n_train // cfg.samples_per_pokemon}  ({n_train} samples/epoch)")
+    print(f"Val sprites:   {n_val}")
 
     log_path = os.path.join(cfg.log_dir, "train_log.csv")
     with open(log_path, "w") as f:

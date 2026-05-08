@@ -1,7 +1,7 @@
 import requests
 import os
 
-def download_pokemon_sprite(pokemon_name_or_id, output_dir="."):
+def download_pokemon_sprite(pokemon_name_or_id, output_dir=".", prefix=""):
     """
     Downloads the front_default sprite for a given pokemon using the PokeAPI.
     
@@ -36,7 +36,7 @@ def download_pokemon_sprite(pokemon_name_or_id, output_dir="."):
         os.makedirs(output_dir, exist_ok=True)
         
         pokemon_name = data.get("name", str(pokemon_name_or_id))
-        filename = os.path.join(output_dir, f"{pokemon_name}.png")
+        filename = os.path.join(output_dir, f"{prefix}_{pokemon_name}.png")
         
         # Save the image to disk
         with open(filename, 'wb') as f:
@@ -48,6 +48,7 @@ def download_pokemon_sprite(pokemon_name_or_id, output_dir="."):
 
 if __name__ == "__main__":
     # Example usage downloading Ditto (ID 132) and Pikachu
-
     download_pokemon_sprite('meowstic-female', output_dir="./")
     # download_pokemon_sprite("pikachu", output_dir="pokemon_sprites")
+    for i in range(1, 1026):
+        download_pokemon_sprite(i, output_dir="./", prefix=str(i))
