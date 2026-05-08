@@ -1,5 +1,7 @@
 # PokAE Interpolator
 
+[Live App](https://brave-water-0f1e3a510.7.azurestaticapps.net/) · [GitHub](https://github.com/brybranmuffin/gen_ai_image_project)
+
 ## Overview
 
 PokAE Interpolator is an application that allows users to explore what it would look like if they combined their two favorite Pokémon together. It uses a Variational Autoencoder (VAE) to encode latent representations of nearly all 1,025 different species of currently discovered Pokémon. PokAE Interpolator uses spherical linear interpolation (SLERP) to smoothly combine the encoded features of each Pokémon, generating hours of exploration and fun for the user.
